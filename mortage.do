@@ -51,6 +51,16 @@ quiet forvalues n = 1/360 {
 	replace payed_p = `payed_p' in `n'
 }
 
+gen ep_payed_i = .
+label var ep_payed_i "等额本金累积偿还利息"
+local remain = `loan'
+local ep_payed_i = 0
+quiet forvalues n = 1/360 {
+	local ep_payed_i = `ep_payed_i' + `remain' * `rate'
+	replace ep_payed_i = `ep_payed_i' in `n'
+	local remain = `remain' - `loan' / 360
+}
+
 gen double ip_diff = payed_i - payed_p
 label var ip_diff "累积利息与累积本金差额"
 label var ip_diff 利息还贷差
@@ -65,7 +75,7 @@ gen double ip_ratio = payment_i / payment_p
 label var ip_ratio "月供利息本金百分比"
 
 format %10.2fc payment_*
-format %10.0fc remain ip_diff payed*
+format %10.0fc remain ip_diff *payed*
 
 gen year = ceil(_n / 12)
 gen expect_up = (payed_i + `price') / `area'
@@ -87,11 +97,12 @@ list payed_i payed_p ip_diff remain if ip_diff == r(max)
 
 #delimit ;
 twoway 
-line payed_i payed_p index, xsize(16) ysize(9)
+line ep_payed_i payed_i payed_p index, xsize(16) ysize(9)
 xtitle("") xlabel(0(12)360, labs(*.5) angle(0))
 ytitle("") ylabel(0(1000000)5500000,labs(*.65) format(%10.0fc) angle(90))
-lc(red green) lw(*1.5 ..) ||
-line ip_diff index, lc(pink) lw(*1.5) ||
+ymtick(##5, grid glw(*.4))
+lc(orange_red red green) lw(*1.5 ..) lp(-) ||
+line ip_diff index, lc(magenta) lw(*1.5) ||
 line simple index, lc (black) lp(-.) lw(*.5)
 || ,
 legend(off)
@@ -105,7 +116,7 @@ text(`=payed_i[196]' 196 `"[196(`=strofreal(196/12,"%4.1f")') `=strofreal(payed_
 text(`=payed_p[196]' 196 `"[196(`=strofreal(196/12,"%4.1f")') `=strofreal(payed_p[196],"%10.0fc")']"', place(se) margin(b + 1) size(vsmall))
 text(`=payed_i[275]' 275 `"[275(`=strofreal(275/12,"%4.1f")') `=strofreal(payed_i[275],"%10.0fc")']"', place(nw) margin(b + 1) size(vsmall))
 text(`=payed_p[275]' 275 `"[275(`=strofreal(275/12,"%4.1f")') `=strofreal(payed_p[275],"%10.0fc")']"', place(se) margin(b + 1) size(vsmall))
-text(`=ip_diff[206]' 206 `"MAX[206(`=strofreal(206/12,"%4.1f")') `=strofreal(ip_diff[206],"%10.0fc")']"', place(n) margin(b + 1) size(small) c(pink))
+text(`=ip_diff[206]' 206 `"MAX[206(`=strofreal(206/12,"%4.1f")') `=strofreal(ip_diff[206],"%10.0fc")']"', place(n) margin(b + 1) size(small) c(magenta))
 ;
 #delimit cr
 graph export payed_ip.pdf, replace

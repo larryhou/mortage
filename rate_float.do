@@ -1,7 +1,7 @@
 clear
 
 local gjj_year_rate = 3.6
-local gjj_amount = 900000
+local gjj_amount = 500000
 
 local range = 20
 local amount = 5340000 - `gjj_amount'
