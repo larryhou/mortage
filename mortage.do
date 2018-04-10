@@ -51,7 +51,7 @@ quiet forvalues n = 1/360 {
 	replace payed_p = `payed_p' in `n'
 }
 
-gen ep_payed_i = .
+gen ep_payed_i = ., after(payed_i)
 label var ep_payed_i "等额本金累积偿还利息"
 local remain = `loan'
 local ep_payed_i = 0
@@ -61,9 +61,17 @@ quiet forvalues n = 1/360 {
 	local remain = `remain' - `loan' / 360
 }
 
+gen payed_total = payed_i + payed_p
+gen ep_payed_total = ep_payed_i + _n * `loan' / 360
+gen diff_payed_total = ep_payed_total - payed_total
+label var payed_total "等本息累积付款"
+label var ep_payed_total "等本金累积付款"
+label var diff_payed_total "等本金与等本息付款差额"
+
+
 gen double ip_diff = payed_i - payed_p
 label var ip_diff "累积利息与累积本金差额"
-label var ip_diff 利息还贷差
+label var ip_diff "利息还贷差"
 
 gen double pct_i = payed_i / `loan' * 100
 gen double pct_p = payed_p / `loan' * 100
@@ -126,6 +134,17 @@ forvalues n = 1/4 {
 	quiet sum ip_ratio if ip_ratio >= `n'
 	list payed_i payed_p ip_diff remain ip_ratio if ip_ratio == r(min)
 }
+
+#delimit ;
+line diff_payed_total index, xsize(16) ysize(9)
+lw(*2.0 ..) lc(black)
+xtitle("") xlabel(0(12)360, labs(*.5) angle(0))
+ytitle(, size(*.75)) ylabel(, labs(*.75))
+ymtick(##5, grid glw(*.4))
+text(`=diff_payed_total[134]' 134 `"[134(`=strofreal(134/12,"%4.1f")') `=strofreal(`=diff_payed_total[134]',"%8.0fc")']"', place(n) margin(b 1) size(small) color(red))
+text(`=diff_payed_total[268]' 268 `"[268(`=strofreal(268/12,"%4.1f")') `=strofreal(`=diff_payed_total[268]',"%8.0fc")']"', place(ne) margin(b 0) size(small) color(midgreen))
+;
+#delimit cr
 
 // 1 51 115 206
 #delimit ;
