@@ -68,6 +68,10 @@ label var payed_total "等本息累积付款"
 label var ep_payed_total "等本金累积付款"
 label var diff_payed_total "等本金与等本息付款差额"
 
+gen diff_payed_i = ep_payed_i - payed_i
+gen diff_payed_p = _n * `loan' / 360 - payed_p
+label var diff_payed_i "等本金与等本息累积利息差额"
+label var diff_payed_p "等本金与等本息累积本金差额"
 
 gen double ip_diff = payed_i - payed_p
 label var ip_diff "累积利息与累积本金差额"
@@ -136,15 +140,38 @@ forvalues n = 1/4 {
 }
 
 #delimit ;
-line diff_payed_total index, xsize(16) ysize(9)
-lw(*2.0 ..) lc(black)
+line diff_payed_i diff_payed_p diff_payed_total index, xsize(16) ysize(9)
+lw(*2.0 ..) lc(red green orange)
 xtitle("") xlabel(0(12)360, labs(*.5) angle(0))
 ytitle(, size(*.75)) ylabel(, labs(*.75))
 ymtick(##5, grid glw(*.4))
-text(`=diff_payed_total[134]' 134 `"[134(`=strofreal(134/12,"%4.1f")') `=strofreal(`=diff_payed_total[134]',"%8.0fc")']"', place(n) margin(b 1) size(small) color(red))
-text(`=diff_payed_total[268]' 268 `"[268(`=strofreal(268/12,"%4.1f")') `=strofreal(`=diff_payed_total[268]',"%8.0fc")']"', place(ne) margin(b 0) size(small) color(midgreen))
+legend(col(1) ring(0) position(8) size(*.75) symx(*.5))
+text(`=diff_payed_total[134]' 134 `"[134(`=strofreal(134/12,"%4.1f")') `=strofreal(`=diff_payed_total[134]',"%8.0fc")']"', place(n) margin(b 1) size(small) color(orange))
+text(`=diff_payed_total[268]' 268 `"[268(`=strofreal(268/12,"%4.1f")') `=strofreal(`=diff_payed_total[268]',"%8.0fc")']"', place(ne) margin(b 0) size(small) color(orange))
+text(`=diff_payed_p[204]' 204 `"[204(`=strofreal(204/12,"%4.1f")') `=strofreal(`=diff_payed_p[204]',"%10.0fc")']"', place(n) margin(b 1) size(small) color(green))
 ;
 #delimit cr
+graph export diff_payed_total.pdf, replace
+
+#delimit ;
+line diff_payed_i index, xsize(16) ysize(9)
+xtitle("") xlabel(0(12)360, labs(*.5) angle(0))
+ytitle(, size(*.75)) ylabel(, labs(*.75))
+ymtick(##10, grid glw(*.4))
+lc(red) lw(*2)
+xline( 60, lw(*.5) lp(-.))
+xline(120, lw(*.5) lp(-.))
+xline(180, lw(*.5) lp(-.))
+xline(240, lw(*.5) lp(-.))
+xline(300, lw(*.5) lp(-.))
+text(`=diff_payed_i[60]' 60 `"[60(`=strofreal(60/12,"%4.1f")') `=strofreal(`=diff_payed_i[60]',"%10.0fc")']"', place(ne) size(small) color(black))
+text(`=diff_payed_i[120]' 120 `"[120(`=strofreal(120/12,"%4.1f")') `=strofreal(`=diff_payed_i[120]',"%10.0fc")']"', place(ne) size(small) color(black))
+text(`=diff_payed_i[180]' 180 `"[180(`=strofreal(180/12,"%4.1f")') `=strofreal(`=diff_payed_i[180]',"%10.0fc")']"', place(ne) size(small) color(black))
+text(`=diff_payed_i[240]' 240 `"[240(`=strofreal(240/12,"%4.1f")') `=strofreal(`=diff_payed_i[240]',"%10.0fc")']"', place(ne) size(small) color(black))
+text(`=diff_payed_i[300]' 300 `"[300(`=strofreal(300/12,"%4.1f")') `=strofreal(`=diff_payed_i[300]',"%10.0fc")']"', place(nw) size(small) color(black))
+;
+#delimit cr
+graph export diff_payed_i.pdf, replace
 
 // 1 51 115 206
 #delimit ;
